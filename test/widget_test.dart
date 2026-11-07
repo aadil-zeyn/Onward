@@ -3,10 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:onward/data/habit_store.dart';
+import 'package:onward/data/task_store.dart';
+import 'package:onward/data/theme_controller.dart';
 import 'package:onward/main.dart';
 import 'package:onward/models/habit.dart';
 
+Future<OnwardApp> buildApp({bool seedTasks = false}) async {
+  final prefs = await SharedPreferences.getInstance();
+  return OnwardApp(
+    habits: HabitStore(prefs),
+    tasks: TaskStore(prefs, seedIfNew: seedTasks),
+    theme: ThemeController(prefs),
+  );
+}
+
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   group('Habit.currentStreak', () {
     final now = DateTime(2026, 11, 7, 15);
 
@@ -33,8 +46,7 @@ void main() {
     });
   });
 
-  test('store persists habits across instances', () async {
-    SharedPreferences.setMockInitialValues({});
+  test('habit store persists habits across instances', () async {
     final prefs = await SharedPreferences.getInstance();
     final store = HabitStore(prefs);
     store.add('Walk', 0xFF000000);
@@ -46,16 +58,16 @@ void main() {
   });
 
   testWidgets('add a habit and check it off', (tester) async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    await tester.pumpWidget(OnwardApp(store: HabitStore(prefs)));
+    await tester.pumpWidget(await buildApp());
+    await tester.tap(find.text('Habits'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Start something small'), findsOneWidget);
 
     await tester.tap(find.text('New habit'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Meditate');
-    await tester.tap(find.text('Add'));
+    await tester.enterText(find.byType(TextField).last, 'Meditate');
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
     await tester.pumpAndSettle();
 
     expect(find.text('Meditate'), findsOneWidget);

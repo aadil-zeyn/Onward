@@ -15,7 +15,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.aadil.onward"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -29,11 +28,31 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // CI passes a private key through these variables when the
+            // ANDROID_KEYSTORE_BASE64 secret is set (see README).
+            val privateKeystore = System.getenv("ONWARD_KEYSTORE_FILE")
+            if (privateKeystore != null) {
+                storeFile = file(privateKeystore)
+                storePassword = System.getenv("ONWARD_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ONWARD_KEY_ALIAS")
+                keyPassword = System.getenv("ONWARD_KEY_PASSWORD")
+            } else {
+                // Fallback: a fixed key kept in the repo so every build carries
+                // the same signature and installs as an update. It is public,
+                // so it proves nothing about who built the APK.
+                storeFile = file("onward-public.jks")
+                storePassword = "onward-public"
+                keyAlias = "onward"
+                keyPassword = "onward-public"
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
