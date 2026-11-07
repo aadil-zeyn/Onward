@@ -10,7 +10,7 @@ A calm, beautiful place for your tasks and habits, built with Flutter.
 
 ## Install on Android with Obtainium
 
-Every push to `main` builds a signed APK and publishes it on the [Releases page](https://github.com/aadil-zeyn/Onward/releases).
+Every push to `main` builds a signed APK and publishes it on the [Releases page](https://github.com/aadil-zeyn/Onward/releases). This needs a one-time [signing setup](#release-signing).
 
 1. Install [Obtainium](https://github.com/ImranR98/Obtainium).
 2. Tap **Add App** and paste `https://github.com/aadil-zeyn/Onward`.
@@ -46,18 +46,28 @@ flutter build apk     # build/app/outputs/flutter-apk/app-release.apk
 
 ## Release signing
 
-Android only installs an update when it is signed with the same key as the installed app. Out of the box, builds are signed with `android/app/onward-public.jks`. That key is committed to this public repo, so every CI build has a stable signature and updates install smoothly. Because anyone can read it, it doesn't prove who built an APK. Only install Onward from this repo's releases.
+Android only installs an update when it's signed with the same key as the installed app, so releases are signed with a private key kept in GitHub secrets. Pull-request builds use a throwaway debug key and are never published.
 
-To sign with a private key instead, add these repository secrets (Settings → Secrets and variables → Actions):
+One-time setup (on a computer with Java installed):
+
+```sh
+keytool -genkeypair -v -keystore onward-release.jks -storetype PKCS12 \
+  -alias onward -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 onward-release.jks   # on macOS: base64 -i onward-release.jks
+```
+
+Then add these repository secrets (Settings → Secrets and variables → Actions):
 
 | Secret | Value |
 | --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 your-key.jks` |
-| `ANDROID_KEYSTORE_PASSWORD` | the keystore password |
-| `ANDROID_KEY_ALIAS` | the key alias |
-| `ANDROID_KEY_PASSWORD` | the key password (if different) |
+| `ANDROID_KEYSTORE_BASE64` | the base64 output above |
+| `ANDROID_KEYSTORE_PASSWORD` | the keystore password you chose |
+| `ANDROID_KEY_ALIAS` | `onward` |
+| `ANDROID_KEY_PASSWORD` | only if it differs from the keystore password |
 
-Switching keys changes the signature, so you'll need to uninstall and reinstall the app once.
+Keep `onward-release.jks` and its password somewhere safe and never commit them. If the key is lost, future builds can't update an installed copy, and you'd have to uninstall and reinstall.
+
+Until the secrets exist, pushes to `main` still run the analyzer and tests, but the release step stops with a message explaining what's missing.
 
 ## Fonts
 

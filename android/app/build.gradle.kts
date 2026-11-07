@@ -28,31 +28,26 @@ android {
         versionName = flutter.versionName
     }
 
+    // Release builds are signed with the private key CI decodes from the
+    // ANDROID_KEYSTORE_* repository secrets (see README). Without it (local
+    // builds, pull requests) they fall back to the debug key.
+    val releaseKeystore = System.getenv("ONWARD_KEYSTORE_FILE")
     signingConfigs {
-        create("release") {
-            // CI passes a private key through these variables when the
-            // ANDROID_KEYSTORE_BASE64 secret is set (see README).
-            val privateKeystore = System.getenv("ONWARD_KEYSTORE_FILE")
-            if (privateKeystore != null) {
-                storeFile = file(privateKeystore)
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
                 storePassword = System.getenv("ONWARD_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("ONWARD_KEY_ALIAS")
                 keyPassword = System.getenv("ONWARD_KEY_PASSWORD")
-            } else {
-                // Fallback: a fixed key kept in the repo so every build carries
-                // the same signature and installs as an update. It is public,
-                // so it proves nothing about who built the APK.
-                storeFile = file("onward-public.jks")
-                storePassword = "onward-public"
-                keyAlias = "onward"
-                keyPassword = "onward-public"
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName(
+                if (releaseKeystore != null) "release" else "debug",
+            )
         }
     }
 }
