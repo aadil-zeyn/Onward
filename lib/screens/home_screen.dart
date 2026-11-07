@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
         final done = habits.where((h) => h.isDoneOn(today)).length;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Onward')),
+          appBar: AppBar(title: const Text('Habits')),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _openEditor(context),
             icon: const Icon(Icons.add),
@@ -176,7 +176,7 @@ class _HabitCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         onLongPress: onEdit,
         child: Padding(
           padding: const EdgeInsets.all(16),
