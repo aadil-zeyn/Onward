@@ -16,7 +16,7 @@ Every push to `main` builds a signed APK and publishes it on the [Releases page]
 2. Tap **Add App** and paste `https://github.com/aadil-zeyn/Onward`.
 3. Tap **Add**, then **Install**. Obtainium will notify you when a new build is released.
 
-You can also download the `.apk` straight from the latest release.
+Each release has one APK per CPU type, and Obtainium picks the right one automatically. To download one yourself from the latest release, take `arm64-v8a`, which suits almost every phone from the last several years.
 
 ## Features
 
