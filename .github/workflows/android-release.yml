@@ -75,20 +75,28 @@ jobs:
             echo "ONWARD_KEY_PASSWORD=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
           } >> "$GITHUB_ENV"
 
-      - name: Build APK
+      # One APK per CPU type keeps each download around 18 MB instead of
+      # ~50 MB for a universal APK. Obtainium picks the one matching the
+      # phone from the ABI in the file name.
+      - name: Build APKs
         run: >
-          flutter build apk --release
+          flutter build apk --release --split-per-abi
           --build-name=${{ steps.version.outputs.name }}
           --build-number=${{ steps.version.outputs.code }}
 
-      - name: Name the APK
-        run: cp build/app/outputs/flutter-apk/app-release.apk "onward-${{ steps.version.outputs.name }}.apk"
+      - name: Name the APKs
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" \
+              "onward-${{ steps.version.outputs.name }}-${abi}.apk"
+          done
+          ls -lh onward-*.apk
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: onward-${{ steps.version.outputs.name }}
-          path: onward-${{ steps.version.outputs.name }}.apk
+          path: onward-*.apk
 
       - name: Publish GitHub release
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -97,6 +105,6 @@ jobs:
           tag_name: v${{ steps.version.outputs.name }}
           name: Onward ${{ steps.version.outputs.name }}
           target_commitish: ${{ github.sha }}
-          files: onward-${{ steps.version.outputs.name }}.apk
+          files: onward-*.apk
           generate_release_notes: true
           make_latest: true
