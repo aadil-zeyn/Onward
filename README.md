@@ -1,12 +1,42 @@
 # Onward
 
-A calm, beautiful place for your tasks and habits, built with Flutter.
+A calm, beautiful place for your work, your to-dos and your habits. Native Android, written in Kotlin with Jetpack Compose.
 
 <p align="center">
-  <img src="docs/screenshot-tasks-light.png" alt="Onward tasks, light theme" width="32%">
-  <img src="docs/screenshot-tasks-dark.png" alt="Onward tasks, dark theme" width="32%">
-  <img src="docs/screenshot-edit.png" alt="Editing a task" width="32%">
+  <img src="docs/screens/today-light.png" alt="Today" width="24%">
+  <img src="docs/screens/work-light.png" alt="Work projects" width="24%">
+  <img src="docs/screens/list-dark.png" alt="A project's tasks, dark theme" width="24%">
+  <img src="docs/screens/habits-dark.png" alt="Habit tracker, dark theme" width="24%">
 </p>
+
+## How it's organised
+
+Three tabs along the bottom:
+
+| Tab | What's there |
+| --- | --- |
+| **Today** | Everything due today or overdue, from every list, plus today's habits to tick off. Quick capture can drop a task into any list. |
+| **Personal** | The **habit tracker**, plus **General** and **Personal** to-do lists. |
+| **Work** | A list per project: **WBS**, **GraphQL App**, **MongoDB**, **Neo4j** and **Misc**. |
+
+Add, rename, recolour or remove lists in either space: tap **New list**, or long-press a list card. Each list gets one of eight colours and an icon.
+
+## Features
+
+**Tasks**
+- Quick capture with a priority (None, Low, Medium, High) and a due date: Today, Tomorrow, Next week, or any date you pick.
+- Tap a task to edit its title, notes, priority, due date, or move it to another list.
+- Swipe right to complete, swipe left to delete (with undo).
+- All, Active and Done filters with live counts, "Clear completed" with undo, and confetti when a list is finished.
+- Due dates read as *Today*, *Tomorrow* or *Thursday*, and overdue tasks are highlighted. Project cards flag what's late or due today.
+
+**Habits**
+- Tick off today with one tap, or fill in any of the last seven days.
+- Current streak, best streak and this week's count for each habit, and a week-at-a-glance chart on the Personal tab.
+
+**Everywhere**
+- Warm light and dark themes. The app follows your system; the sun/moon button on Today switches.
+- Everything is stored on your device.
 
 ## Install on Android with Obtainium
 
@@ -16,32 +46,32 @@ Every push to `main` builds a signed APK and publishes it on the [Releases page]
 2. Tap **Add App** and paste `https://github.com/aadil-zeyn/Onward`.
 3. Tap **Add**, then **Install**. Obtainium will notify you when a new build is released.
 
-Each release has one APK per CPU type, and Obtainium picks the right one automatically. To download one yourself from the latest release, take `arm64-v8a`, which suits almost every phone from the last several years.
+Each release is a single APK of about 2 MB that works on any phone running Android 8 or later.
 
-## Features
+### Upgrading from the Flutter version
 
-**Tasks**
-- Quick capture with a priority (None, Low, Medium, High) and a due date: Today, Tomorrow, Next week, or any date you pick.
-- A checkbox that animates, a progress ring for the day, and a burst of confetti when everything's done.
-- Tap a task to edit it. Swipe right to complete it, or swipe left to delete it (with undo).
-- Hold the dotted handle and drag to reorder.
-- All, Active and Done filters with live counts, plus "Clear done" with undo.
-- Due dates read as *Today*, *Tomorrow* or *Thursday*, and overdue tasks are highlighted.
-
-**Habits**
-- Track daily habits with a seven-day history and streaks.
-
-**Everywhere**
-- Warm light and dark themes. The app follows your system by default, and the sun/moon button switches.
-- Everything is stored on your device.
+Onward 2 keeps the same app ID and signing key, so it installs over the Flutter version as a normal update. On first launch it brings across your tasks (into **General**), your habits and your theme choice.
 
 ## Develop
 
+You need JDK 17 or later and the Android SDK (platform 37). Open the project in Android Studio, or:
+
 ```sh
-flutter pub get
-flutter run           # on a device or emulator
-flutter test
-flutter build apk     # build/app/outputs/flutter-apk/app-release.apk
+./gradlew testDebugUnitTest                                 # unit and screenshot tests
+./gradlew testDebugUnitTest -Proborazzi.test.record=true    # also re-draw docs/screens/*.png
+./gradlew installDebug                                      # run on a connected phone
+./gradlew assembleRelease                                   # app/build/outputs/apk/release/
+```
+
+The screenshot tests render every screen in both themes with [Robolectric](https://robolectric.org) and [Roborazzi](https://github.com/takahirom/roborazzi), so no emulator is needed.
+
+```
+app/src/main/java/com/aadil/onward/
+  model/      Tasks, lists, habits; dates, streaks and due-date labels
+  data/       JSON storage (and the Flutter import), view model
+  ui/theme/   Colours and type: Fraunces and DM Sans on warm paper
+  ui/components/  Composer, task row, check circle, progress ring, confetti…
+  ui/screens/ Today, Personal/Work spaces, a list, habits, and the edit sheets
 ```
 
 ## Release signing
@@ -67,8 +97,8 @@ Then add these repository secrets (Settings → Secrets and variables → Action
 
 Keep `onward-release.jks` and its password somewhere safe and never commit them. If the key is lost, future builds can't update an installed copy, and you'd have to uninstall and reinstall.
 
-Until the secrets exist, pushes to `main` still run the analyzer and tests, but the release step stops with a message explaining what's missing.
+If you already set these up for the Flutter version, there's nothing to do: the same secrets sign the Kotlin build.
 
 ## Fonts
 
-[DM Sans](https://fonts.google.com/specimen/DM+Sans) and [Fraunces](https://fonts.google.com/specimen/Fraunces) are bundled under the SIL Open Font License (`assets/fonts/`).
+[DM Sans](https://fonts.google.com/specimen/DM+Sans) and [Fraunces](https://fonts.google.com/specimen/Fraunces) are bundled under the SIL Open Font License (`app/src/main/assets/licenses/`).

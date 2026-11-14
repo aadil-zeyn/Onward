@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only shown for the moment before Compose draws: the warm paper
+         background, so launching never flashes white or black. -->
+    <style name="Theme.Onward" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/onward_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

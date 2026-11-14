@@ -27,29 +27,24 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: gradle
 
-      - uses: subosito/flutter-action@v2
+      - uses: android-actions/setup-android@v3
         with:
-          channel: stable
-          flutter-version: '3.47.9'
-          cache: true
+          packages: 'platforms;android-37.0 build-tools;36.0.0'
 
-      - name: Install dependencies
-        run: flutter pub get
+      - uses: gradle/actions/setup-gradle@v4
 
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
-
+      # Versions continue from the Flutter builds: their per-ABI version
+      # codes stayed below 5000, so 10000 + run number always upgrades them.
       - name: Work out version
         id: version
         run: |
-          base=$(sed -nE 's/^version: *([0-9]+\.[0-9]+)\..*/\1/p' pubspec.yaml)
+          base=$(sed -nE 's/^onward\.version=([0-9]+\.[0-9]+).*/\1/p' gradle.properties)
           echo "name=${base}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-          echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "code=$((10000 + ${{ github.run_number }}))" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: ./gradlew testDebugUnitTest
 
       - name: Set up release signing key
         env:
@@ -75,21 +70,16 @@ jobs:
             echo "ONWARD_KEY_PASSWORD=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
           } >> "$GITHUB_ENV"
 
-      # One APK per CPU type keeps each download around 18 MB instead of
-      # ~50 MB for a universal APK. Obtainium picks the one matching the
-      # phone from the ABI in the file name.
-      - name: Build APKs
+      # The app has no native code, so one small APK suits every phone.
+      - name: Build APK
         run: >
-          flutter build apk --release --split-per-abi
-          --build-name=${{ steps.version.outputs.name }}
-          --build-number=${{ steps.version.outputs.code }}
+          ./gradlew assembleRelease
+          -PversionName=${{ steps.version.outputs.name }}
+          -PversionCode=${{ steps.version.outputs.code }}
 
-      - name: Name the APKs
+      - name: Name the APK
         run: |
-          for abi in arm64-v8a armeabi-v7a x86_64; do
-            cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" \
-              "onward-${{ steps.version.outputs.name }}-${abi}.apk"
-          done
+          cp app/build/outputs/apk/release/app-release.apk "onward-${{ steps.version.outputs.name }}.apk"
           ls -lh onward-*.apk
 
       - name: Upload build artifact
